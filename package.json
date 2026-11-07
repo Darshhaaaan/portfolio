@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "dotenv": "^17.4.2",
+    "framer-motion": "^14.10.1",
     "next": "14.2.0",
     "nodemailer": "^8.0.7",
     "react": "^18",

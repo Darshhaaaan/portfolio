@@ -1,6 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import CursorDrivenParticleTypography from './CursorDrivenParticleTypography'
+import ScrollSplitSkills from '../components/ScrollSplitSkills'
+import { motion, useScroll, useTransform } from 'framer-motion'
 
 /* ─────────────────────────────────────────────────────────────────────────
    CURSOR
@@ -55,92 +58,54 @@ function Cursor() {
 /* ─────────────────────────────────────────────────────────────────────────
    WELCOME
 ───────────────────────────────────────────────────────────────────────── */
-const LINE1 = ['D', 'A', 'R', 'S', 'H', 'A', 'N']
-const LINE2 = ["'", 'S', ' ', 'P', 'O', 'R', 'T', 'F', 'O', 'L', 'I', 'O']
-
 function Welcome() {
-  const [ghostVisible, setGhostVisible] = useState(false)
-  const [line1Shown, setLine1Shown] = useState([])
-  const [line2Shown, setLine2Shown] = useState([])
-  const [dividerOpen, setDividerOpen] = useState(false)
-  const [subtitleShow, setSubtitleShow] = useState(false)
+  const [entered, setEntered] = useState(false)
   const [exiting, setExiting] = useState(false)
   const [gone, setGone] = useState(false)
-  const screenRef = useRef(null)
 
   useEffect(() => {
     document.body.classList.add('welcome-active')
 
-    const timers = []
+    const enterTimer = setTimeout(() => {
+      setEntered(true)
+    }, 50)
 
-    timers.push(setTimeout(() => setGhostVisible(true), 100))
-
-    LINE1.forEach((_, i) => {
-      timers.push(setTimeout(() => {
-        setLine1Shown(prev => [...prev, i])
-      }, 200 + i * 60))
-    })
-
-    LINE2.forEach((_, i) => {
-      timers.push(setTimeout(() => {
-        setLine2Shown(prev => [...prev, i])
-      }, 500 + i * 50))
-    })
-
-    timers.push(setTimeout(() => setDividerOpen(true), 1000))
-    timers.push(setTimeout(() => setSubtitleShow(true), 1100))
-
-    timers.push(setTimeout(() => {
+    const exitTimer = setTimeout(() => {
       setExiting(true)
-      setTimeout(() => {
-        setGone(true)
-        document.body.classList.remove('welcome-active')
-      }, 900)
-    }, 2600))
+    }, 2300)
 
-    return () => timers.forEach(clearTimeout)
+    const removeTimer = setTimeout(() => {
+      setGone(true)
+      document.body.classList.remove('welcome-active')
+    }, 3400)
+
+    return () => {
+      clearTimeout(enterTimer)
+      clearTimeout(exitTimer)
+      clearTimeout(removeTimer)
+      document.body.classList.remove('welcome-active')
+    }
   }, [])
 
   if (gone) return null
 
   return (
-    <div
-      ref={screenRef}
-      className={`welcome-screen${exiting ? ' exit' : ''}`}
-    >
-      <div className={`welcome-ghost${ghostVisible ? ' visible' : ''}`}>DARSHAN</div>
+    <div className={`welcome-screen ${exiting ? 'exit' : ''}`}>
 
-      <div className="welcome-text-wrap">
-        <div className="welcome-line welcome-line-1">
-          {LINE1.map((char, i) => (
-            <span
-              key={i}
-              className={`char${line1Shown.includes(i) ? ' show' : ''}`}
-            >
-              {char}
-            </span>
-          ))}
+      <div className={`welcome-panel ${entered ? 'entered' : ''}`}>
+
+        <div className={`welcome-stamp ${entered ? 'show' : ''}`}>
+
+          <h1>DARSHAN<span>.</span></h1>
+
+          <div className="welcome-stamp-line" />
+
+          <p>FULL STACK DEVELOPER · BANGALORE</p>
+
         </div>
 
-        <div className="welcome-line welcome-line-2">
-          {LINE2.map((char, i) => (
-            <span
-              key={i}
-              className={`char${char === "'" ? ' apos' : ''}${line2Shown.includes(i) ? ' show' : ''}`}
-            >
-              {char === ' ' ? '\u00A0' : char}
-            </span>
-          ))}
-        </div>
-
-        <div
-          className={`welcome-divider${dividerOpen ? ' open' : ''}`}
-          style={{ minWidth: dividerOpen ? '100%' : 0 }}
-        />
-        <p className={`welcome-subtitle${subtitleShow ? ' show' : ''}`}>
-          Web Developer · Full Stack · Bangalore
-        </p>
       </div>
+
     </div>
   )
 }
@@ -175,16 +140,28 @@ function Hero() {
 
       <div className="hero-content">
         <p className="hero-welcome-small">welcome to</p>
+
         <p className="hero-welcome-large">
           Darshan<em>&apos;s</em> Portfolio
         </p>
 
         <p className="hero-eyebrow">Available for projects</p>
 
-        <h1 className="hero-h1">
-          Full Stack<br />
-          <em>Developer.</em>
-        </h1>
+        <div
+          className="hero-h1 hero-particle-heading"
+          role="heading"
+          aria-level="1"
+        >
+          <CursorDrivenParticleTypography
+            text={'Full Stack\nDeveloper.'}
+            fontSize={160}
+            letterSpacing={5}
+            particleSize={1.8}
+            particleDensity={5}
+            dispersionStrength={15}
+            returnSpeed={0.08}
+          />
+        </div>
 
         <p className="hero-sub">
           I&apos;m Darshan — I build fast, scalable web experiences from pixel to server.
@@ -192,8 +169,12 @@ function Hero() {
         </p>
 
         <div className="hero-ctas">
-          <a href="#projects" className="btn-primary">View my work</a>
-          <a href="#contact" className="btn-ghost">Let&apos;s collaborate →</a>
+          <a href="#projects" className="btn-primary">
+            View my work
+          </a>
+          <a href="#contact" className="btn-ghost">
+            Let&apos;s collaborate →
+          </a>
         </div>
       </div>
 
@@ -210,7 +191,30 @@ function Hero() {
     </section>
   )
 }
+function ScrollRevealText({ text }) {
+  const ref = useRef(null)
 
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ['start 0.85', 'end 0.35'],
+  })
+
+  const opacity = useTransform(
+    scrollYProgress,
+    [0, 1],
+    [0.2, 1]
+  )
+
+  return (
+    <motion.p
+      ref={ref}
+      className="about-para scroll-reveal-text"
+      style={{ opacity }}
+    >
+      {text}
+    </motion.p>
+  )
+}
 /* ─────────────────────────────────────────────────────────────────────────
    ABOUT
 ───────────────────────────────────────────────────────────────────────── */
@@ -218,26 +222,32 @@ function About() {
   return (
     <section className="about" id="about">
       <div className="about-grid reveal">
-        <div>
+
+        {/* LEFT SIDE — ABOUT TEXT */}
+        <div className="about-text">
           <p className="section-label">About me</p>
+
           <h2 className="about-h2">
-            Building the <span>web</span>,<br />one layer at a time.
+            Building the <span>web</span>,<br />
+            one layer at a time.
           </h2>
-          <p className="about-para">
-            I&apos;m a <strong>full-stack web developer</strong> with ~1.5 years of hands-on
-            experience crafting digital products from the ground up. I work across the entire
-            stack — from pixel-perfect frontends to robust, optimized backends.
-          </p>
-          <p className="about-para">
-            My approach: write <strong>clean, scalable code</strong> that performs under
-            pressure. I&apos;ve built and optimized systems designed for{' '}
-            <strong>thousands of concurrent users</strong>, making sure performance never
-            becomes a bottleneck.
-          </p>
-          <span className="about-badge">Open to freelance &amp; full-time roles</span>
+
+          <ScrollRevealText
+            text="I'm a full-stack web developer with ~1.5 years of hands-on experience crafting digital products from the ground up. I work across the entire stack — from pixel-perfect frontends to robust, optimized backends."
+          />
+
+          <ScrollRevealText
+            text="My approach: write clean, scalable code that performs under pressure. I've built and optimized systems designed for thousands of concurrent users, making sure performance never becomes a bottleneck."
+          />
+
+          <span className="about-badge">
+            Open to freelance &amp; full-time roles
+          </span>
         </div>
 
-        <div className="about-stats">
+        {/* RIGHT SIDE — THREE STAT CARDS */}
+        <div className="about-stats sticky-stat-stack">
+
           <div className="stat-card">
             <span className="stat-icon">⚡</span>
             <div>
@@ -245,29 +255,81 @@ function About() {
               <span className="stat-label">Developing experience</span>
             </div>
           </div>
+
           <div className="stat-card">
             <span className="stat-icon">🚀</span>
             <div>
-              <span className="stat-num">Building<span className="accent-dot">.</span></span>
-              <span className="stat-label">Dynamic and optimized solutions</span>
+              <span className="stat-num">
+                Building<span className="accent-dot">.</span>
+              </span>
+              <span className="stat-label">
+                Dynamic and optimized solutions
+              </span>
             </div>
           </div>
+
           <div className="stat-card">
             <span className="stat-icon">🛠</span>
             <div>
               <span className="stat-num">Full.</span>
-              <span className="stat-label">End-to-end stack coverage — nothing outsourced</span>
+              <span className="stat-label">
+                End-to-end stack coverage — nothing outsourced
+              </span>
             </div>
           </div>
+
         </div>
       </div>
     </section>
   )
 }
-
 /* ─────────────────────────────────────────────────────────────────────────
-   SKILLS
+   PROJECTS
 ───────────────────────────────────────────────────────────────────────── */
+const PROJECTS = [
+  {
+    num: '01',
+    name: 'ByThePound',
+    tags: ['Next.js', 'Node.js', 'Express', 'MongoDB'],
+    desc: 'Experimental full-stack ecommerce platform with user & admin panel.',
+    detail:
+      'ByThePound is a full-stack experimental ecommerce site built with Next.js on the frontend and Node.js + Express on the backend, with MongoDB as the database. It features a complete shopping experience including a product catalogue, cart system, checkout flow, and a fully separate admin panel for managing products, orders, and users. Built to explore the end-to-end complexity of ecommerce architecture.',
+    stack: [
+      { tech: 'Next.js', role: 'Frontend framework + SSR' },
+      { tech: 'Node.js + Express', role: 'REST API server' },
+      { tech: 'MongoDB', role: 'NoSQL database for products/orders/users' },
+      { tech: 'CSS Modules', role: 'Styling' },
+    ],
+  },
+  {
+    num: '02',
+    name: 'HerSpace',
+    tags: ['Next.js', 'Node.js', 'Express', 'MongoDB', 'AI API'],
+    desc: 'A safe global forum for women and young girls, powered by AI.',
+    detail:
+      'HerSpace is a full-stack community platform built to connect women across the world and give young girls going through puberty a safe, judgment-free space to ask questions that are considered taboo in many cultures. It integrates a third-party AI API to assist with responses and content moderation. Built with Next.js and Node.js + Express, backed by MongoDB. The platform features a forum system, threaded discussions, and AI-assisted Q&A.',
+    stack: [
+      { tech: 'Next.js', role: 'Frontend + SSR' },
+      { tech: 'Node.js + Express', role: 'Backend API' },
+      { tech: 'MongoDB', role: 'Database' },
+      { tech: 'Third-party AI API', role: 'Intelligent Q&A and moderation' },
+    ],
+  },
+  {
+    num: '03',
+    name: 'Book Recommender',
+    tags: ['React', 'Node.js', 'Web Scraping'],
+    desc: 'Dynamic personality quiz that web-scrapes and recommends books tailored to you.',
+    detail:
+      'A full-stack web scraping application that recommends books based on a dynamic personality quiz. The quiz questions adapt based on your previous answers — branching logic that narrows down your reading personality. The backend scrapes book data in real time and returns personalised recommendations. Built with React on the frontend and Node.js on the backend, with dynamic question trees powering the quiz engine.',
+    stack: [
+      { tech: 'React', role: 'Frontend UI + quiz engine' },
+      { tech: 'Node.js', role: 'Backend + scraping logic' },
+      { tech: 'Dynamic branching quiz', role: 'Questions change based on prior answers' },
+      { tech: 'Web Scraping', role: 'Real-time book data retrieval' },
+    ],
+  },
+]
 const SKILL_CATS = [
   {
     num: '01',
@@ -317,91 +379,6 @@ const SKILL_CATS = [
     ],
   },
 ]
-
-function Skills() {
-  return (
-    <section className="skills" id="skills">
-      <div className="skills-header reveal">
-        <div>
-          <p className="section-label">Tech stack</p>
-          <h2 className="skills-h2">
-            What I work with<em>.*</em>
-          </h2>
-        </div>
-        <p className="skills-note">✦ marks my primary / most-used tools</p>
-      </div>
-
-      <div className="skills-grid reveal">
-        {SKILL_CATS.map((cat) => (
-          <div key={cat.num} className="skill-cat">
-            <p className="skill-cat-num">{cat.num}</p>
-            <p className="skill-cat-title">{cat.title}</p>
-            <div className="chips">
-              {cat.chips.map((chip) => (
-                <span
-                  key={chip.label}
-                  className={`chip${chip.hot ? ' hot' : ''}`}
-                >
-                  {chip.label}
-                  {chip.hot && '✦'}
-                </span>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-/* ─────────────────────────────────────────────────────────────────────────
-   PROJECTS
-───────────────────────────────────────────────────────────────────────── */
-const PROJECTS = [
-  {
-    num: '01',
-    name: 'ByThePound',
-    tags: ['Next.js', 'Node.js', 'Express', 'MongoDB'],
-    desc: 'Experimental full-stack ecommerce platform with user & admin panel.',
-    detail:
-      'ByThePound is a full-stack experimental ecommerce site built with Next.js on the frontend and Node.js + Express on the backend, with MongoDB as the database. It features a complete shopping experience including a product catalogue, cart system, checkout flow, and a fully separate admin panel for managing products, orders, and users. Built to explore the end-to-end complexity of ecommerce architecture.',
-    stack: [
-      { tech: 'Next.js', role: 'Frontend framework + SSR' },
-      { tech: 'Node.js + Express', role: 'REST API server' },
-      { tech: 'MongoDB', role: 'NoSQL database for products/orders/users' },
-      { tech: 'CSS Modules', role: 'Styling' },
-    ],
-  },
-  {
-    num: '02',
-    name: 'HerSpace',
-    tags: ['Next.js', 'Node.js', 'Express', 'MongoDB', 'AI API'],
-    desc: 'A safe global forum for women and young girls, powered by AI.',
-    detail:
-      'HerSpace is a full-stack community platform built to connect women across the world and give young girls going through puberty a safe, judgment-free space to ask questions that are considered taboo in many cultures. It integrates a third-party AI API to assist with responses and content moderation. Built with Next.js and Node.js + Express, backed by MongoDB. The platform features a forum system, threaded discussions, and AI-assisted Q&A.',
-    stack: [
-      { tech: 'Next.js', role: 'Frontend + SSR' },
-      { tech: 'Node.js + Express', role: 'Backend API' },
-      { tech: 'MongoDB', role: 'Database' },
-      { tech: 'Third-party AI API', role: 'Intelligent Q&A and moderation' },
-    ],
-  },
-  {
-    num: '03',
-    name: 'Book Recommender',
-    tags: ['React', 'Node.js', 'Web Scraping'],
-    desc: 'Dynamic personality quiz that web-scrapes and recommends books tailored to you.',
-    detail:
-      'A full-stack web scraping application that recommends books based on a dynamic personality quiz. The quiz questions adapt based on your previous answers — branching logic that narrows down your reading personality. The backend scrapes book data in real time and returns personalised recommendations. Built with React on the frontend and Node.js on the backend, with dynamic question trees powering the quiz engine.',
-    stack: [
-      { tech: 'React', role: 'Frontend UI + quiz engine' },
-      { tech: 'Node.js', role: 'Backend + scraping logic' },
-      { tech: 'Dynamic branching quiz', role: 'Questions change based on prior answers' },
-      { tech: 'Web Scraping', role: 'Real-time book data retrieval' },
-    ],
-  },
-]
-
 function Projects() {
   const [openProject, setOpenProject] = useState(null)
 
@@ -414,24 +391,35 @@ function Projects() {
         </h2>
       </div>
 
-      <div className="proj-list reveal">
-        {PROJECTS.map((proj) => (
+      <div className="project-stack">
+        {PROJECTS.map((proj, index) => (
           <div
             key={proj.num}
-            className="proj-item"
+            className="project-stack-card"
+            style={{ '--card-index': index }}
             onClick={() => setOpenProject(proj)}
           >
-            <span className="proj-num">{proj.num}</span>
-            <div className="proj-info">
-              <span className="proj-name">{proj.name}</span>
+            <div className="project-card-top">
+              <span className="proj-num">{proj.num} / 03</span>
+              <span className="proj-arrow">↗</span>
+            </div>
+
+            <div className="project-card-content">
+              <h3 className="project-card-title">{proj.name}</h3>
+
+              <p className="project-card-desc">{proj.desc}</p>
+
               <div className="proj-tags">
                 {proj.tags.map(t => (
                   <span key={t} className="proj-tag">{t}</span>
                 ))}
               </div>
-              <span className="proj-desc">{proj.desc}</span>
             </div>
-            <span className="proj-arrow">↗</span>
+
+            <div className="project-card-bottom">
+              <span>EXPLORE PROJECT</span>
+              <span>CLICK TO VIEW DETAILS ↗</span>
+            </div>
           </div>
         ))}
       </div>
@@ -450,14 +438,19 @@ function Projects() {
             >
               ×
             </button>
+
             <h3 className="modal-title">{openProject.name}</h3>
+
             <div className="modal-chips">
               {openProject.tags.map(t => (
                 <span key={t} className="modal-chip">{t}</span>
               ))}
             </div>
+
             <p className="modal-desc">{openProject.detail}</p>
+
             <p className="modal-stack-title">Stack breakdown</p>
+
             {openProject.stack.map((s) => (
               <div key={s.tech} className="modal-stack-item">
                 <span className="modal-stack-dot" />
@@ -473,7 +466,6 @@ function Projects() {
     </section>
   )
 }
-
 /* ─────────────────────────────────────────────────────────────────────────
    CONTACT
 ───────────────────────────────────────────────────────────────────────── */
@@ -642,12 +634,16 @@ export default function Page() {
       <Welcome />
       <Nav />
       <main>
-        <Hero />
-        <About />
-        <Skills />
-        <Projects />
-        <Contact />
-      </main>
+  <Hero />
+  <About />
+
+  {/* New animated Tech Stack */}
+  <ScrollSplitSkills cards={SKILL_CATS} />
+
+  {/* Original sections — preserve these */}
+  <Projects />
+  <Contact />
+</main>
       <Footer />
     </>
   )
